@@ -3,12 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package main.modals;
+package modals;
+
+import java.io.Serializable;
 
 /**
  *
  * @author ritzhaki
  */
-public enum NewEnum {
-    
+public enum Condition implements Serializable{
+    Poor,
+    Good,
+    NotInUse
 }
+

@@ -5,12 +5,16 @@
  */
 package main;
 
+import dal.FileSystemDal;
+import modals.Rent;
+import modals.BookReader;
+import modals.Book;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import main.modals.*;
+import modals.Condition;
 
 /**
  *
@@ -18,26 +22,28 @@ import main.modals.*;
  */
 public class Library {
 
-    public static Book[] books;
-    public static BookReader[] readers;
-    public static Rent[] rents;
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        
-        getData();
-        System.out.println(
-                "Hello and welcome to the Library\n"
-                + "[1] rent a book\n"
-                + "[2] return a book\n"
-                + "[3] add new reader");
-        char input;
-        input = '0';
-        while ((input = getInput()) != '0') {
-            System.out.print(input);
-            System.out.println(" is not a vaild input");
-        }
+
+        FileSystemDal fsd = new FileSystemDal();
+        //fsd.SaveBook(new Book("book a", Condition.Good));
+        fsd.GetBooks().forEach((b) -> {
+            System.out.print(b);
+        });
+
+//        System.out.println(
+//                "Hello and welcome to the Library\n"
+//                + "[1] rent a book\n"
+//                + "[2] return a book\n"
+//                + "[3] add new reader");
+//        char input;
+//        input = '0';
+//        while ((input = getInput()) != '0') {
+//            System.out.print(input);
+//            System.out.println(" is not a vaild input");
+//        }
     }
 
     public static char getInput() throws IOException {

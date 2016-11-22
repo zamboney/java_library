@@ -5,15 +5,21 @@
  */
 package dal;
 
-import main.modals.*;
+import java.util.*;
+import modals.Rent;
+import modals.BookReader;
+import modals.Book;
 
 /**
  *
  * @author ritzhaki
  */
 public interface BaseDal {
-    Book[] getBooks();
-    BookReader[] getBookReader();
-    Rent[] getRents();
+    List<Book> GetBooks();
+    boolean SaveBook(Book b);
+    List<BookReader> GetBookReader();
+    boolean SaveBookReader(BookReader br);
+    List<Rent> GetRents();
+    boolean SaveRent(Rent r);
     
 }

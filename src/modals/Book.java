@@ -3,19 +3,26 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package main.modals;
+package modals;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
  *
  * @author ritzhaki
  */
-public class Book {
+public class Book implements Serializable{
     private final UUID _id = UUID.randomUUID();
     private final String _name;
     private Condition _condition;
 
+    @Override
+    public String toString() {
+        return String.format("%s - \"%s\" - %s", this._id,this._name, this._condition);
+    }
+    
+    
     public Book(String _name, Condition _condition) {
         this._name = _name;
         this._condition = _condition;
