@@ -35,5 +35,11 @@ public class Book implements Serializable{
     public void setCondition(Condition _condition) {
         this._condition = _condition;
     }
+
+    public String getName() {
+        return _name;
+    }
+    
+    
     
 }
