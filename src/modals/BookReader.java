@@ -19,6 +19,7 @@ public class BookReader implements Serializable{
     private final Date _created;
     private final String _email;
     private boolean _canRent;
+    private String RentId = null;
 
     @Override
     public String toString() {

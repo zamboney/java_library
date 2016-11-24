@@ -5,6 +5,8 @@
  */
 package views;
 
+import java.util.List;
+
 /**
  *
  * @author ritzhaki
@@ -12,7 +14,17 @@ package views;
 public class OutPut {
 
     public static void ShowText(String text) {
-       System.out.println(text);
+        System.out.println(text);
     }
-    
+
+    public static void ShowTable(String headerFormat, List<String> headers, List<List<String>> rows) {
+        String str = String.format(headerFormat, headers.toArray());
+        OutPut.ShowText(String.format(str, headers));
+        OutPut.ShowText(new String(new char[str.length()]).replace("\0", "="));
+        rows.forEach((row) -> OutPut.ShowText(String.format(headerFormat, row.toArray())));
+        OutPut.ShowText(new String(new char[str.length()]).replace("\0", "="));
+        OutPut.ShowText(new String(new char[str.length()]).replace("\0", " "));
+
+    }
+
 }

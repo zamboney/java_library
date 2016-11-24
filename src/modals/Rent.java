@@ -16,8 +16,8 @@ import java.util.UUID;
 public class Rent implements Serializable{
 
     private final UUID _id;
-    private final BookReader _reader;
-    private final Book _book;
+    private final String _readerId;
+    private final String _bookId;
     private final Date _start;
     private Date _end;
     private final Date _doto;
@@ -26,9 +26,9 @@ public class Rent implements Serializable{
 
     public Rent(BookReader _reader, Book _book, Date _doto) {
         this._id = UUID.randomUUID();
-        this._reader = _reader;
+        this._readerId = _reader.getId().toString();
         this._doto = _doto;
-        this._book = _book;
+        this._bookId = _book.getId().toString();
         this._start = new Date();
         this._onRentCondition = _book.getCondition();
     }
@@ -40,13 +40,15 @@ public class Rent implements Serializable{
         return _doto;
     }
 
-    public BookReader getReader() {
-        return _reader;
+    public UUID getReaderId() {
+        return UUID.fromString(_readerId);
     }
 
-    public Book getBook() {
-        return _book;
+    public UUID getBookId() {
+        return UUID.fromString(_bookId);
     }
+
+
 
     public Date getStart() {
         return _start;
@@ -58,6 +60,10 @@ public class Rent implements Serializable{
 
     public void setEnd(Date _end) {
         this._end = _end;
+    }
+
+    public UUID getId() {
+        return this._id;
     }
 
 }

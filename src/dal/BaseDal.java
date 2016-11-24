@@ -26,4 +26,11 @@ public interface BaseDal {
     public boolean RemoveBook(UUID GetUUID);
     public boolean RemoveBookReader(UUID GetUUID);
     
+    public void UpDateRent(Rent rent);
+
+    public BookReader GetBookReaderById(UUID readerId);
+    public Book GetBookById(UUID readerId);
+
+    public void UpDateBook(Book book);
+    
 }

@@ -6,9 +6,11 @@
 package controllers;
 
 import dal.BaseDal;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 import modals.Book;
 import modals.BookReader;
 import modals.Rent;
@@ -29,18 +31,61 @@ public class RentController extends BaseController {
         BookReader reader = new BookReaderController(this._dal).PeekOne();
         Date toDo = new Date();
         toDo.setTime((long) (toDo.getTime() + 1.15741e-8 * book.getDateToRent()));
-        this._dal.SaveRent(new Rent(reader, book, toDo));
+        Rent rent = new Rent(reader, book, toDo);
+        book.setRentId(rent.toString());
+        this._dal.UpDateBook(book);
+        this._dal.SaveRent(rent);
     }
 
-    void ShowAll() {
-        views.OutPut.ShowText(String.format("%-20s|%-20s|%-10s", "Reader" ,"Book","Return Date"));
-        views.OutPut.ShowText(String.format("====================================================="));
-        this._dal.GetRents().forEach((rent)->{
-            views.OutPut.ShowText(String.format("%-20s|%-20s|%-10s", 
-                    rent.getBook().getName(),
-                    rent.getReader().getName(),
-                    new SimpleDateFormat("yyyy-MM-dd").format(rent.getDoto().getTime())));
-        });
+    void ReturnBook() throws BackToHomeException {
+        Rent rent = this.GetByBookUUID();
+        Book book = this._dal.GetBookById(rent.getBookId());
+        book.setCondition(new BookController(this._dal).peekACondition());
+        book.setRentId(rent.toString());
+        this._dal.UpDateBook(book);
+        this._dal.UpDateRent(rent);
+
+    }
+
+    void ShowAll() throws BackToHomeException {
+        views.OutPut.ShowText("Enter Reader Name");
+        String name = views.Input.GetWord();
+        List<List<String>> rows = this._dal.GetRents()
+                .stream()
+                .filter((rent)->this._dal.GetBookReaderById(rent.getReaderId()).getName().contains(name))
+                .map((rent) -> new ArrayList<String>() {
+            {
+                add(_dal.GetBookById(rent.getBookId()).getId().toString());
+                add(_dal.GetBookById(rent.getBookId()).getName());
+                add(_dal.GetBookById(rent.getBookId()).getCondition().toString());
+                add(_dal.GetBookReaderById(rent.getReaderId()).getName());
+            }
+        }).collect(Collectors.toList());
+
+        List<String> headers = new ArrayList<String>() {
+            {
+                add("Book Id");
+                add("Book");
+                add("Condition");
+                add("Reader");
+
+            }
+        };
+        views.OutPut.ShowTable("%-37s|%-20s|%-10s|%-20s", headers, rows);
+
+    }
+
+    private Rent GetByBookUUID() throws BackToHomeException {
+        Book book = new BookController(_dal).PeekOneById();
+        try {
+            return this._dal.GetRents().stream()
+                    .filter((r) -> r.getEnd() == null && _dal.GetBookById(r.getBookId()).getId().equals(book.getId()))
+                    .findFirst().get();
+        } catch (java.util.NoSuchElementException exc) {
+            views.OutPut.ShowText("this book isn't rented");
+            throw new views.BackToHomeException();
+        }
+
     }
 
 }

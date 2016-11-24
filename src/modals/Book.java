@@ -16,7 +16,21 @@ public class Book implements Serializable{
     private final UUID _id = UUID.randomUUID();
     private final String _name;
     private Condition _condition;
+    private final Genre _genre;
     private int _dateToRent = 2;
+    private String RentId = null;
+
+    public void setCondition(Condition _condition) {
+        this._condition = _condition;
+    }
+
+    public String getRentId() {
+        return RentId;
+    }
+
+    public void setRentId(String RentId) {
+        this.RentId = RentId;
+    }
 
     public int getDateToRent() {
         return _dateToRent;
@@ -36,8 +50,9 @@ public class Book implements Serializable{
     }
     
     
-    public Book(String _name, Condition _condition) {
+    public Book(String _name, Condition _condition, Genre _genre) {
         this._name = _name;
+        this._genre = _genre;
         this._condition = _condition;
     }
 
@@ -45,12 +60,13 @@ public class Book implements Serializable{
         return _condition;
     }
 
-    public void setCondition(Condition _condition) {
-        this._condition = _condition;
-    }
-
+    
     public String getName() {
         return _name;
+    }
+
+    public Genre getGenre() {
+        return _genre;
     }
     
     

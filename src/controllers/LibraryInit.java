@@ -30,39 +30,90 @@ public class LibraryInit extends BaseController {
             try {
                 int input = CheckList.Show("Welcome to the Library",
                         new ArrayList<String>() {
-                            {
-                                add("Rent A Book");
-                                add("Add New Reader");
-                                add("Add New Book");
-                                add("Delete a Book");
-                                add("Show All Rents");
-                                add("Show All Book");
-                            }
-                        });
+                    {
+                        add("Book");
+                        add("Reader");
+                        add("Rent");
+                    }
+                });
                 switch (input) {
                     case 0:
-                        new RentController(this._dal).Add();
+                        this.Books();
                         break;
                     case 1:
-                        new BookReaderController(this._dal).Add();
+                        this.Reader();
                         break;
+
                     case 2:
-                        new BookController(this._dal).Add();
-                        break;
-                    case 3:
-                        new BookController(this._dal).Remove();
-                        break;
-                    case 4:
-                        new RentController(this._dal).ShowAll();
-                        break;
-                    case 5:
-                        new BookController(this._dal).ShowByName();
-                        break;
+                        this.Rent();
                         
+
                 }
             } catch (BackToHomeException ex) {
-               continue;
+                continue;
             }
+        }
+    }
+
+    private void Books() throws BackToHomeException, IOException {
+        int input = CheckList.Show("Books",
+                new ArrayList<String>() {
+            {
+                add("Add");
+                add("Remove");
+                add("Show All");
+            }
+        });
+        switch (input) {
+            case 0:
+                new BookController(this._dal).Add();
+                break;
+            case 1:
+                new BookController(this._dal).Remove();
+                break;
+            case 2:
+                new BookController(this._dal).ShowByName();
+                break;
+        }
+    }
+
+    private void Reader() throws BackToHomeException, IOException {
+        int input = CheckList.Show("Reader",
+                new ArrayList<String>() {
+            {
+                add("Add");
+                add("Show All");
+            }
+        });
+        switch (input) {
+            case 0:
+                new BookReaderController(this._dal).Add();
+                break;
+            case 1:
+                new BookReaderController(this._dal).All();
+                break;
+        }
+    }
+
+    private void Rent() throws BackToHomeException {
+       int input = CheckList.Show("Rent",
+                new ArrayList<String>() {
+            {
+                add("Rent");
+                add("Retren");
+                add("Show All");
+            }
+        });
+        switch (input) {
+            case 0:
+                new RentController(this._dal).Add();
+                break;
+            case 1:
+                new RentController(this._dal).ReturnBook();
+                break;
+            case 2:
+                new RentController(this._dal).ShowAll();
+                break;
         }
     }
 
