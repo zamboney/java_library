@@ -5,6 +5,7 @@
  */
 package modals;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
@@ -12,14 +13,23 @@ import java.util.UUID;
  *
  * @author ritzhaki
  */
-public class BookReader {
+public class BookReader implements Serializable{
     private final UUID _id = UUID.randomUUID();
     private final String _name;
     private final Date _created;
     private final String _email;
     private boolean _canRent;
 
-    public boolean isCanRent() {
+    @Override
+    public String toString() {
+        return String.format("%s",this._name);
+    }
+
+    public UUID getId() {
+        return _id;
+    }
+
+    public boolean CanRent() {
         return _canRent;
     }
 

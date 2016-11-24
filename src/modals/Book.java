@@ -16,10 +16,23 @@ public class Book implements Serializable{
     private final UUID _id = UUID.randomUUID();
     private final String _name;
     private Condition _condition;
+    private int _dateToRent = 2;
+
+    public int getDateToRent() {
+        return _dateToRent;
+    }
+
+    public UUID getId() {
+        return _id;
+    }
+
+    public void setDateToRent(int _dateToRent) {
+        this._dateToRent = _dateToRent;
+    }
 
     @Override
     public String toString() {
-        return String.format("%s - \"%s\" - %s", this._id,this._name, this._condition);
+        return String.format("\"%s\" - %s",this._name, this._condition);
     }
     
     

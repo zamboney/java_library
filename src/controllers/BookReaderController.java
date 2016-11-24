@@ -6,40 +6,66 @@
 package controllers;
 
 import dal.BaseDal;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import modals.Book;
+import modals.BookReader;
+import modals.Rent;
+import views.CheckList;
+import views.*;
 
 /**
  *
  * @author ritzhaki
  */
-public class BookReaderController {
-
-    BaseDal _dal;
+public class BookReaderController extends BaseController {
 
     BookReaderController(BaseDal dal) {
-        this._dal = dal;
+        super(dal);
     }
 
-    void Rent() {
-        String bookName = views.Input.getWord("Enter Book Name");
-        HashMap<String,String> books = new HashMap<String,String>(){};
-        this._dal.GetBooks()
-                .stream()
-                .filter((book)-> book.getName().contains(bookName))
-                .collect(Collectors.toList());
-        
-        
-        
-        
-        
+
+
+    public void Add() throws IOException, BackToHomeException {
+        views.OutPut.ShowText("Enter Reader Name");
+        String name = views.Input.GetWord();
+        views.OutPut.ShowText("Enter Reader Email");
+        String email = views.Input.GetWord();
+        BookReader br = new BookReader(name, email);
+        this._dal.SaveBookReader(br);
+        views.OutPut.ShowText("New Book Reader Added :" + br.toString());
+
     }
 
-    void Add() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public BookReader PeekOne() throws BackToHomeException {
+        while (true) {
+            OutPut.ShowText("Enter Reader name");
+            String name = Input.GetWord();
+            List<BookReader> bookreaders = this._dal.GetBookReader()
+                    .stream()
+                    .filter((br) -> br.getName().contains(name))
+                    .sorted((a, b) -> {
+                        return a.getName().compareTo(b.getName());
+                    })
+                    .collect(Collectors.toList());
+            if (bookreaders.isEmpty()) {
+                OutPut.ShowText(String.format("\"%s\" isn't found", name));
+                continue;
+            }
+            BookReader br = bookreaders.get(CheckList.Show("Result for: " + name,
+                    bookreaders.stream().map((book) -> book.getName()).collect(Collectors.toList())));
+            if (br.CanRent()) {
+                return br;
+            } else {
+                OutPut.ShowText(br.getName() + " can't rent");
+                
+            }
+        }
     }
-    
+
 }

@@ -7,65 +7,63 @@ package controllers;
 
 import dal.BaseDal;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import views.BackToHomeException;
 import views.CheckList;
-import views.List;
+import views.ViewList;
 
 /**
  *
  * @author ritzhaki
  */
-public class LibraryInit {
-
-    private final int NUMBER_OF_DAY_LIMIT = 20;
-    private final BaseDal _dal;
-    private final BookController _bookController;
-    private final BookReaderController _bookReaderController;
+public class LibraryInit extends BaseController {
 
     public LibraryInit(BaseDal dal) {
-        this._dal = dal;
-        this._bookController = new BookController(this._dal);
-        this._bookReaderController = new BookReaderController(this._dal);
+        super(dal);
     }
 
     public void mainPage() throws IOException {
         while (true) {
-            String input = CheckList.Show("Welcome to the Library",
-                    new HashMap<String, String>() {
-                {
-                    put("1", "Rent A Book");
-                    put("2", "Add New Reader");
-                    put("3", "Add New Book");
-                    put("4", "Show Setting");
-                    put("Q", "Press \"Q\" to Quit");
+            try {
+                int input = CheckList.Show("Welcome to the Library",
+                        new ArrayList<String>() {
+                            {
+                                add("Rent A Book");
+                                add("Add New Reader");
+                                add("Add New Book");
+                                add("Delete a Book");
+                                add("Show All Rents");
+                                add("Show All Book");
+                            }
+                        });
+                switch (input) {
+                    case 0:
+                        new RentController(this._dal).Add();
+                        break;
+                    case 1:
+                        new BookReaderController(this._dal).Add();
+                        break;
+                    case 2:
+                        new BookController(this._dal).Add();
+                        break;
+                    case 3:
+                        new BookController(this._dal).Remove();
+                        break;
+                    case 4:
+                        new RentController(this._dal).ShowAll();
+                        break;
+                    case 5:
+                        new BookController(this._dal).ShowByName();
+                        break;
+                        
                 }
-            });
-            switch (input) {
-                case "Q":
-                    return;
-                case "1":
-                    this._bookReaderController.Rent();
-                    break;
-                case "2":
-                    this._bookReaderController.Add();
-                    break;
-                case "3":
-                    this._bookController.Add();
-                    break;
-                case "4":
-                    this.showSetting();
-                    break;
-
+            } catch (BackToHomeException ex) {
+               continue;
             }
         }
-    }
-
-    private void showSetting() {
-        List.ShowList("Setting:", new HashMap<String, String>() {
-            {
-                put("Number Of Delay Day's Allow ", Integer.toString(NUMBER_OF_DAY_LIMIT));
-            }
-        });
     }
 
 }

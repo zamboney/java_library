@@ -5,6 +5,7 @@
  */
 package modals;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.UUID;
 
@@ -12,7 +13,7 @@ import java.util.UUID;
  *
  * @author ritzhaki
  */
-public class Rent {
+public class Rent implements Serializable{
 
     private final UUID _id;
     private final BookReader _reader;

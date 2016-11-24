@@ -21,5 +21,9 @@ public interface BaseDal {
     boolean SaveBookReader(BookReader br);
     List<Rent> GetRents();
     boolean SaveRent(Rent r);
+    int GetDelayDays();
+
+    public boolean RemoveBook(UUID GetUUID);
+    public boolean RemoveBookReader(UUID GetUUID);
     
 }

@@ -8,10 +8,13 @@ package dal;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import modals.Book;
 import modals.BookReader;
+import modals.Condition;
 import modals.Rent;
 
 /**
@@ -55,7 +58,7 @@ public class FileSystemDal implements BaseDal {
         return null;
     }
 
-    private <T>boolean saveData(List<T> list,T item, String fileName) throws IOException, ClassNotFoundException {
+    private <T> boolean saveData(List<T> list, T item, String fileName) throws IOException, ClassNotFoundException {
         FileOutputStream fos = new FileOutputStream(fileName);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
         try {
@@ -68,12 +71,32 @@ public class FileSystemDal implements BaseDal {
             oos.close();
         }
     }
-
+    private <T> boolean saveData(List<T> list, String fileName) throws IOException, ClassNotFoundException {
+        FileOutputStream fos = new FileOutputStream(fileName);
+        ObjectOutputStream oos = new ObjectOutputStream(fos);
+        try {
+            oos.writeObject(list);
+            return true;
+        } catch (IOException ex) {
+            throw ex;
+        } finally {
+            oos.close();
+        }
+    }
     @Override
     public List<Book> GetBooks() {
         List<Book> books = new ArrayList<Book>();
+
         try {
             books = this.getData(this.BOOK_DAT);
+            if (books.size() == 0) {
+                books.add(new Book("book a", Condition.Good));
+                books.add(new Book("book b", Condition.Good));
+                books.add(new Book("book c", Condition.Good));
+                books.add(new Book("book d", Condition.Good));
+                this.saveData(books, new Book("book e", Condition.Good), this.BOOK_DAT);
+                books = this.getData(this.BOOK_DAT);
+            }
         } catch (IOException ex) {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
@@ -84,7 +107,7 @@ public class FileSystemDal implements BaseDal {
     @Override
     public boolean SaveBook(Book b) {
         try {
-            return this.saveData(this.GetBooks(),b, this.BOOK_DAT);
+            return this.saveData(this.GetBooks(), b, this.BOOK_DAT);
         } catch (IOException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -95,9 +118,20 @@ public class FileSystemDal implements BaseDal {
 
     @Override
     public List<BookReader> GetBookReader() {
-         List<BookReader> items = new ArrayList<BookReader>();
+        List<BookReader> items = new ArrayList<BookReader>();
         try {
-            items = this.getData(this.BOOK_DAT);
+
+            items = this.getData(this.BOOK_READER_DAT);
+            List<Rent> rents = this.GetRents();
+            items.forEach((reader) -> {
+                int delayDays = rents.stream()
+                        .filter((rent) -> rent.getReader().equals(reader))
+                        .mapToInt((rent) -> {
+                            Double d = ((rent.getDoto().getTime() - rent.getEnd().getTime())/ 1.15741e-8);
+                            return d > 0 ? d.intValue() : 0;
+                        }).sum();
+                reader.setCanRent(delayDays <= _getDelayDays);
+            });
         } catch (IOException ex) {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
@@ -108,7 +142,7 @@ public class FileSystemDal implements BaseDal {
     @Override
     public boolean SaveBookReader(BookReader br) {
         try {
-            return this.saveData(this.GetBookReader(),br, this.BOOK_READER_DAT);
+            return this.saveData(this.GetBookReader(), br, this.BOOK_READER_DAT);
         } catch (IOException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {
@@ -119,7 +153,7 @@ public class FileSystemDal implements BaseDal {
 
     @Override
     public List<Rent> GetRents() {
-         List<Rent> items = new ArrayList<Rent>();
+        List<Rent> items = new ArrayList<Rent>();
         try {
             items = this.getData(this.RENT_DAT);
         } catch (IOException ex) {
@@ -132,7 +166,41 @@ public class FileSystemDal implements BaseDal {
     @Override
     public boolean SaveRent(Rent r) {
         try {
-            return this.saveData(this.GetRents(),r, this.BOOK_DAT);
+            return this.saveData(this.GetRents(), r, this.RENT_DAT);
+        } catch (IOException ex) {
+            Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+    private int _getDelayDays = 2;
+    @Override
+    public int GetDelayDays() {
+        return this._getDelayDays;
+    }
+
+    @Override
+    public boolean RemoveBook(UUID GetUUID) {
+        List<Book> books = this.GetBooks();
+        Book book = books.stream().filter((b)->b.getId().equals(GetUUID)).findFirst().get();
+        books.remove(book);
+        try {
+            return this.saveData(books, this.BOOK_DAT);
+        } catch (IOException ex) {
+            Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return false;
+    }
+    @Override
+    public boolean RemoveBookReader(UUID GetUUID) {
+        List<BookReader> readers = this.GetBookReader();
+        BookReader br = readers.stream().filter((item)->item.getId() == GetUUID).findFirst().get();
+        readers.remove(br);
+        try {
+            return this.saveData(readers, this.BOOK_READER_DAT);
         } catch (IOException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
         } catch (ClassNotFoundException ex) {

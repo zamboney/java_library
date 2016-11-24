@@ -6,8 +6,7 @@
 package views;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Scanner;
+import java.util.List;
 
 /**
  *
@@ -15,21 +14,21 @@ import java.util.Scanner;
  */
 public class CheckList {
 
-    private static String getLine() throws IOException {
-        Scanner s = new Scanner(System.in);
-        return s.nextLine();
-    }
-
-    public static String Show(String title, HashMap<String, String> options) throws IOException {
-        String input;
+    public static int Show(String title, List<String> options) throws BackToHomeException {
+        int input = 0;
         while (true) {
-            List.ShowList(title, options);
-            input = CheckList.getLine();
-            if (options.containsKey(input)) {
-                break;
+            ViewList.ShowList(title, options);
+            String str = Input.GetWord();
+            try {
+                input = Integer.parseInt(str);
+                if (input != 0 && input <= options.size()) {
+                    break;
+                }
+            } catch (NumberFormatException e) {
             }
-            System.out.println(input + " is not a vaild input");
+
+            OutPut.ShowText(str + " is not a vaild input");
         }
-        return input;
+        return input - 1;
     }
 }
