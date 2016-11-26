@@ -29,6 +29,10 @@ public class RentController extends BaseController {
     void Add() throws BackToHomeException {
         Book book = new BookController(this._dal).PeekOne();
         BookReader reader = new BookReaderController(this._dal).PeekOne();
+        if(!reader.CanRent()){
+            views.OutPut.ShowText(reader.getName() + " Can't Rent a Book;");
+            throw new BackToHomeException();
+        }
         Date toDo = new Date();
         toDo.setTime((long) (toDo.getTime() + 1.15741e-8 * book.getDateToRent()));
         Rent rent = new Rent(reader, book, toDo);
@@ -38,10 +42,12 @@ public class RentController extends BaseController {
     }
 
     void ReturnBook() throws BackToHomeException {
+        views.OutPut.ShowText("Enter Book Id:");
         Rent rent = this.GetByBookUUID();
         Book book = this._dal.GetBookById(rent.getBookId());
         book.setCondition(new BookController(this._dal).peekACondition());
-        book.setRentId(rent.toString());
+        book.setRentId("");
+        rent.setEnd(new Date());
         this._dal.UpDateBook(book);
         this._dal.UpDateRent(rent);
 
@@ -52,7 +58,10 @@ public class RentController extends BaseController {
         String name = views.Input.GetWord();
         List<List<String>> rows = this._dal.GetRents()
                 .stream()
-                .filter((rent)->this._dal.GetBookReaderById(rent.getReaderId()).getName().contains(name))
+                .filter((rent)->
+                        this._dal.GetBookReaderById(rent.getReaderId()).getName().contains(name))
+                .filter((rent)->
+                        rent.getEnd() == null)
                 .map((rent) -> new ArrayList<String>() {
             {
                 add(_dal.GetBookById(rent.getBookId()).getId().toString());

@@ -26,8 +26,9 @@ public class Input {
         return input;
     }
 
-    public static int GetInt() throws BackToHomeException {
+    public static int GetInt(String text) throws BackToHomeException {
         while (true) {
+            views.OutPut.ShowText(text);
             String input = Input.GetWord();
             try {
                 return Integer.parseInt(input);
@@ -47,6 +48,11 @@ public class Input {
                 OutPut.ShowText(input + " is not a valid UUID");
             }
         }
+    }
+    
+    public static String getWordWithText(String text) throws BackToHomeException{
+        views.OutPut.ShowText(text);
+        return views.Input.GetWord();
     }
 
 }

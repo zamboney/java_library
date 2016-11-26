@@ -4,7 +4,6 @@
  * and open the template in the editor.
  */
 package modals;
-
 import java.io.Serializable;
 import java.util.UUID;
 
@@ -18,7 +17,7 @@ public class Book implements Serializable{
     private Condition _condition;
     private final Genre _genre;
     private int _dateToRent = 2;
-    private String RentId = null;
+    private String RentId = "";
 
     public void setCondition(Condition _condition) {
         this._condition = _condition;
@@ -27,7 +26,7 @@ public class Book implements Serializable{
     public String getRentId() {
         return RentId;
     }
-
+    
     public void setRentId(String RentId) {
         this.RentId = RentId;
     }

@@ -35,32 +35,34 @@ public class BookController extends BaseController {
         _bookGenres = Arrays.asList(Arrays.stream(Genre.class.getEnumConstants()).map(Enum::name).toArray(String[]::new));
     }
 
-    private List<Book> FilterBooks() throws BackToHomeException {
+    /**
+     *
+     * @return @throws BackToHomeException
+     */
+    private List<Book> FilterBooks(String bookName, Genre bookGenre) throws BackToHomeException {
         while (true) {
-
-            Genre bookGenre = this.peekAGenare();
-            OutPut.ShowText("Enter book name");
-            String bookName = Input.GetWord();
-            List<Book> books = this._dal.GetBooks()
-                    .stream()
-                    .filter((book)-> book.getRentId() == null)
-                    .filter((book) -> book.getGenre().equals(bookGenre))
-                    .filter((book) -> book.getName().contains(bookName))
-                    .sorted((a, b) -> {
-                        return a.getName().compareTo(b.getName());
-                    })
-                    .collect(Collectors.toList());
+            List<Book> books
+                    = this._dal.GetBooks()
+                            .stream()
+                            .filter((book) -> "".equals(book.getRentId()))
+                            .filter((book) -> book.getGenre().equals(bookGenre))
+                            .filter((book) -> book.getName().contains(bookName))
+                            .sorted((a, b) -> {
+                                return a.getName().compareTo(b.getName());
+                            })
+                            .collect(Collectors.toList());
             if (books.isEmpty()) {
                 OutPut.ShowText(String.format("\"%s\" isn't found", bookName));
-                continue;
+                throw new BackToHomeException();
             }
             return books;
         }
     }
 
     public Book PeekOne() throws BackToHomeException {
-
-        List<Book> books = this.FilterBooks();
+        String bookName = views.Input.getWordWithText("Enter book name");
+        Genre bookGenre = this.peekAGenare();
+        List<Book> books = this.FilterBooks(bookName, bookGenre);
         return books.get(CheckList.Show("Result:",
                 books.stream().map((book) -> book.getName()).collect(Collectors.toList())));
     }
@@ -68,14 +70,9 @@ public class BookController extends BaseController {
     void Add() throws IOException, BackToHomeException {
 
         Genre bookGenre = this.peekAGenare();
-
-        views.OutPut.ShowText("Enter Book Name");
-        String bookName = views.Input.GetWord();
-
+        String bookName = views.Input.getWordWithText("Enter book name");
         Condition bookCondition = this.peekACondition();
-
-        views.OutPut.ShowText("Number of Books");
-        int bookUnits = views.Input.GetInt();
+        int bookUnits = views.Input.GetInt("Number of Books");
         for (int i = 0; i < bookUnits; i++) {
             Book newBook = new Book(bookName, bookCondition, bookGenre);
             this._dal.SaveBook(newBook);
@@ -85,9 +82,16 @@ public class BookController extends BaseController {
     }
 
     void ShowByName() throws BackToHomeException {
+        String bookName = views.Input.getWordWithText("Enter book name");
+        Boolean getRentsBook = views.CheckList.Show("Get Which book", new ArrayList<String>(){{
+            add("Rent's Books");
+            add("Not Rent's");
+        }}) == 0;
         List<List<String>> rows
-                = this.FilterBooks()
+                = this._dal.GetBooks()
                         .stream()
+                        .filter((book) -> bookName.contains(book.getName()))
+                        .filter((book) -> book.getRentId().equals(""))
                         .map((book) -> new ArrayList<String>() {
                     {
                         add(book.getId().toString());

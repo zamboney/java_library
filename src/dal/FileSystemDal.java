@@ -243,10 +243,10 @@ public class FileSystemDal implements BaseDal {
 
     @Override
     public void UpDateBook(Book book) {
-       List<Book> books = this.GetBooks();
+        List<Book> books = this.GetBooks();
         Book rr = books.stream().filter((r) -> r.getId().equals(r.getId())).findFirst().get();
         books.remove(rr);
-        books.add(rr);
+        books.add(book);
         try {
             this.saveData(books, BOOK_DAT);
         } catch (IOException ex) {

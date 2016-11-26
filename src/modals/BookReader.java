@@ -6,7 +6,9 @@
 package modals;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -20,6 +22,7 @@ public class BookReader implements Serializable{
     private final String _email;
     private boolean _canRent;
     private String RentId = null;
+    private List<String> _RentIds;
 
     @Override
     public String toString() {
@@ -42,6 +45,15 @@ public class BookReader implements Serializable{
         this._created = new Date();
         this._name = _name;
         this._email = _email;
+        this._canRent = true;
+        this._RentIds = new ArrayList<String>(){};
+    }
+    
+    public List<String> getRentIds(){
+        return this._RentIds;
+    }
+    public void AddRentId(UUID id){
+        this._RentIds.add(id.toString());
     }
 
     public String getName() {
