@@ -5,6 +5,7 @@
  */
 package views;
 
+import java.util.List;
 import java.util.Scanner;
 import java.util.UUID;
 
@@ -20,7 +21,7 @@ public class Input {
         if (input.equals("Q")) {
             System.exit(0);
         }
-        if (input.equals("H")){
+        if (input.equals("H")) {
             throw new BackToHomeException();
         }
         return input;
@@ -49,10 +50,28 @@ public class Input {
             }
         }
     }
-    
-    public static String getWordWithText(String text) throws BackToHomeException{
+
+    public static String getWordWithText(String text) throws BackToHomeException {
         views.OutPut.ShowText(text);
         return views.Input.GetWord();
+    }
+
+    public static int peekFromList(String title, List<String> options) throws BackToHomeException {
+        int input = 0;
+        while (true) {
+            views.OutPut.ShowList(title, options);
+            String str = Input.GetWord();
+            try {
+                input = Integer.parseInt(str);
+                if (input != 0 && input <= options.size()) {
+                    break;
+                }
+            } catch (NumberFormatException e) {
+            }
+
+            OutPut.ShowText(str + " is not a vaild input");
+        }
+        return input - 1;
     }
 
 }

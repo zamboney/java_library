@@ -6,7 +6,6 @@
 package controllers;
 
 import dal.BaseDal;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +15,6 @@ import modals.Book;
 import modals.Condition;
 import modals.Genre;
 import views.BackToHomeException;
-import views.CheckList;
 import views.Input;
 import views.OutPut;
 
@@ -26,9 +24,22 @@ import views.OutPut;
  */
 public class BookController extends BaseController {
 
+    /**
+     * Conditions enum as a list of strings.
+     */
     private final List<String> _bookConditions;
+
+    /**
+     * Genres enum as a list of strings.
+     */
     private final List<String> _bookGenres;
 
+    /**
+     * create the book controller. initilazed the list of book conditions and
+     * genres;
+     *
+     * @param dal
+     */
     public BookController(BaseDal dal) {
         super(dal);
         _bookConditions = Arrays.asList(Arrays.stream(Condition.class.getEnumConstants()).map(Enum::name).toArray(String[]::new));
@@ -36,8 +47,13 @@ public class BookController extends BaseController {
     }
 
     /**
+     * get a Books if there name contains the "bookName" and the genre is
+     * "BookGenre"
      *
-     * @return @throws BackToHomeException
+     * @param bookName - books name that contains the the string.
+     * @param bookGenre - the genre of the books.
+     * @return filter Books base on the prams.
+     * @throws BackToHomeException - get back to home.
      */
     private List<Book> FilterBooks(String bookName, Genre bookGenre) throws BackToHomeException {
         while (true) {
@@ -59,39 +75,53 @@ public class BookController extends BaseController {
         }
     }
 
+    /**
+     * Open Check to peek a single book.
+     *
+     * @return the book that been peeked from the check list.
+     * @throws BackToHomeException - go back home.
+     */
     public Book PeekOne() throws BackToHomeException {
         String bookName = views.Input.getWordWithText("Enter book name");
         Genre bookGenre = this.peekAGenare();
         List<Book> books = this.FilterBooks(bookName, bookGenre);
-        return books.get(CheckList.Show("Result:",
+        return books.get(views.Input.peekFromList("Result:",
                 books.stream().map((book) -> book.getName()).collect(Collectors.toList())));
     }
 
-    void Add() throws IOException, BackToHomeException {
+    /**
+     * Add a new Books Get the genre, book name, condition and number of books
+     *
+     * @throws BackToHomeException
+     */
+    void Add() throws BackToHomeException {
 
         Genre bookGenre = this.peekAGenare();
+
         String bookName = views.Input.getWordWithText("Enter book name");
+
         Condition bookCondition = this.peekACondition();
+
         int bookUnits = views.Input.GetInt("Number of Books");
+        List<Book> books = new ArrayList<Book>() {
+        };
         for (int i = 0; i < bookUnits; i++) {
             Book newBook = new Book(bookName, bookCondition, bookGenre);
             this._dal.SaveBook(newBook);
+            books.add(newBook);
         }
+        showBookList(books);
 
-        views.OutPut.ShowText("New book: " + bookName + " Added " + bookUnits + " times.");
     }
 
-    void ShowByName() throws BackToHomeException {
-        String bookName = views.Input.getWordWithText("Enter book name");
-        Boolean getRentsBook = views.CheckList.Show("Get Which book", new ArrayList<String>(){{
-            add("Rent's Books");
-            add("Not Rent's");
-        }}) == 0;
+    /**
+     * show a table of books.
+     * @param books - book to convert to rows on the table.
+     */
+    private void showBookList(List<Book> books) {
         List<List<String>> rows
-                = this._dal.GetBooks()
+                = books
                         .stream()
-                        .filter((book) -> bookName.contains(book.getName()))
-                        .filter((book) -> book.getRentId().equals(""))
                         .map((book) -> new ArrayList<String>() {
                     {
                         add(book.getId().toString());
@@ -115,6 +145,28 @@ public class BookController extends BaseController {
         views.OutPut.ShowText("");
     }
 
+    /**
+     * show book base on name, and status (rented or unrented).
+     * @throws BackToHomeException 
+     */
+    void ShowByName() throws BackToHomeException {
+        String bookName = views.Input.getWordWithText("Enter book name");
+        Boolean getRentsBook = views.Input.peekFromList("Get Which book", new ArrayList<String>() {
+            {
+                add("Rent's Books");
+                add("Not Rent's");
+            }
+        }) == 0;
+        showBookList(this._dal.GetBooks()
+                .stream()
+                .filter((book) -> book.getName().contains(bookName))
+                .filter((book) -> getRentsBook ? !book.getRentId().equals("") : book.getRentId().equals("")).collect(Collectors.toList()));
+    }
+
+    /**
+     * Remove a Book base on his UUID.
+     * @throws BackToHomeException 
+     */
     void Remove() throws BackToHomeException {
         views.OutPut.ShowText("enter UUID of a Book");
         UUID id = views.Input.GetUUID();
@@ -128,15 +180,32 @@ public class BookController extends BaseController {
 
     }
 
+    /**
+     * Peak a book Condition from a list.
+     *
+     * @return the Condition that been peeked.
+     * @throws BackToHomeException
+     */
     public Condition peekACondition() throws BackToHomeException {
-        return Condition.valueOf(this._bookConditions.get(views.CheckList.Show("What is the Book Condition", this._bookConditions)));
+        return Condition.valueOf(this._bookConditions.get(views.Input.peekFromList("What is the Book Condition", this._bookConditions)));
     }
 
+    /**
+     * Peak a book Genre from a list.
+     *
+     * @return the Genre that been peeked.
+     * @throws BackToHomeException
+     */
     public Genre peekAGenare() throws BackToHomeException {
-        return Genre.valueOf(this._bookGenres.get(views.CheckList.Show("What is the Book Genare", this._bookGenres)));
+        return Genre.valueOf(this._bookGenres.get(views.Input.peekFromList("What is the Book Genare", this._bookGenres)));
 
     }
 
+    /**
+     * Peek a book base on his UUID.
+     * @return the Book that bean peeked.
+     * @throws BackToHomeException 
+     */
     Book PeekOneById() throws BackToHomeException {
         UUID id = Input.GetUUID();
         try {

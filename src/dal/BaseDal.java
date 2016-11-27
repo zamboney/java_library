@@ -32,5 +32,9 @@ public interface BaseDal {
     public Book GetBookById(UUID readerId);
 
     public void UpDateBook(Book book);
+
+    public void UpDateBookReader(BookReader reader);
+    
+    public Rent GetRentById(UUID rentId);
     
 }

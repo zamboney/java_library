@@ -26,5 +26,14 @@ public class OutPut {
         OutPut.ShowText(new String(new char[str.length()]).replace("\0", " "));
 
     }
+    
+        public static void ShowList(String title, List<String> options) {
+        OutPut.ShowText(title);
+        for (int i = 0; i < options.size(); i++) {
+            OutPut.ShowText(String.format("[%s] %s",Integer.toString(i + 1), options.get(i)));
+        }
+    }
+        
+        
 
 }

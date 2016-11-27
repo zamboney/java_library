@@ -27,8 +27,8 @@ public class Book implements Serializable{
         return RentId;
     }
     
-    public void setRentId(String RentId) {
-        this.RentId = RentId;
+    public void setRentId(UUID RentId) {
+        this.RentId = RentId == null ? "" : RentId.toString();
     }
 
     public int getDateToRent() {

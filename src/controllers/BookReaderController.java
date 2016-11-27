@@ -6,7 +6,6 @@
 package controllers;
 
 import dal.BaseDal;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,7 +22,12 @@ public class BookReaderController extends BaseController {
         super(dal);
     }
 
-    public void Add() throws IOException, BackToHomeException {
+    /**
+     * Add a new reader
+     *
+     * @throws BackToHomeException
+     */
+    public void Add() throws BackToHomeException {
         views.OutPut.ShowText("Enter Reader Name");
         String name = views.Input.GetWord();
         views.OutPut.ShowText("Enter Reader Email");
@@ -34,9 +38,11 @@ public class BookReaderController extends BaseController {
 
     }
 
-    public void All() throws BackToHomeException {
-        views.OutPut.ShowText("Enter Reader Name");
-        String name = views.Input.GetWord();
+    /**
+     * Print a list of all of the Reader
+     *
+     */
+    public void PrintList(List<BookReader> list) {
         views.OutPut.ShowTable("%-37s|%-20s|%-9s",
                 new ArrayList<String>() {
             {
@@ -44,20 +50,37 @@ public class BookReaderController extends BaseController {
                 add("Name");
                 add("Can Rent");
             }
-        }, this._dal.GetBookReader()
+        },
+                list
                         .stream()
-                        .filter(item -> item.getName().contains(name))
                         .map(item -> new ArrayList<String>() {
                     {
                         add(item.getId().toString());
                         add(item.getName());
                         add(item.CanRent() ? " " : "    *    ");
                     }
-
                 }).collect(Collectors.toList()));
-
     }
 
+    /**
+     * Show a list of reader base on there name.
+     *
+     * @throws BackToHomeException
+     */
+    public void All() throws BackToHomeException {
+        views.OutPut.ShowText("Enter Reader Name");
+        String name = views.Input.GetWord();
+        PrintList(this._dal.GetBookReader()
+                .stream()
+                .filter(item -> item.getName().contains(name)).collect(Collectors.toList()));
+    }
+
+    /**
+     * peek a reader base on his name.
+     *
+     * @return the peeked reader.
+     * @throws BackToHomeException - if the reader can't rent.
+     */
     public BookReader PeekOne() throws BackToHomeException {
         while (true) {
             OutPut.ShowText("Enter Reader name");
@@ -73,7 +96,7 @@ public class BookReaderController extends BaseController {
                 OutPut.ShowText(String.format("\"%s\" isn't found", name));
                 continue;
             }
-            BookReader br = bookreaders.get(CheckList.Show("Result for: " + name,
+            BookReader br = bookreaders.get(views.Input.peekFromList("Result for: " + name,
                     bookreaders.stream().map((book) -> book.getName()).collect(Collectors.toList())));
             if (br.CanRent()) {
                 return br;

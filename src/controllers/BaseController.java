@@ -6,12 +6,6 @@
 package controllers;
 
 import dal.BaseDal;
-import java.util.List;
-import java.util.stream.Collectors;
-import modals.Book;
-import views.CheckList;
-import views.Input;
-import views.OutPut;
 
 /**
  *

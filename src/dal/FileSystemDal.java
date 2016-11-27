@@ -7,8 +7,10 @@ package dal;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -35,6 +37,15 @@ public class FileSystemDal implements BaseDal {
         this.RENT_DAT = "rets.dat";
     }
 
+    /**
+     * Get data from file base on the type.
+     *
+     * @param <T> - the list type in the file.
+     * @param fileName - the file name
+     * @return a list of type <T>
+     * @throws IOException - when IO failed
+     * @throws ClassNotFoundException - when the reading of the object failed
+     */
     private <T> List<T> getData(String fileName) throws IOException, ClassNotFoundException {
         FileInputStream fis = null;
         ObjectInputStream ois;
@@ -60,6 +71,17 @@ public class FileSystemDal implements BaseDal {
         return null;
     }
 
+    /**
+     * add new item to the file, base on <T> type
+     *
+     * @param <T> the type of the data
+     * @param list a list of the type <T>
+     * @param item the item that been added
+     * @param fileName the file location
+     * @return true if succeeded
+     * @throws IOException - the file IO problem
+     * @throws ClassNotFoundException - the deserialize failed.
+     */
     private <T> boolean saveData(List<T> list, T item, String fileName) throws IOException, ClassNotFoundException {
         FileOutputStream fos = new FileOutputStream(fileName);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -74,6 +96,16 @@ public class FileSystemDal implements BaseDal {
         }
     }
 
+    /**
+     * force to update the list (good to update a item in the list)
+     *
+     * @param <T> the type of the data
+     * @param list a list of the type <T>
+     * @param fileName the file location
+     * @return true if succeeded
+     * @throws IOException - the file IO problem
+     * @throws ClassNotFoundException - the deserialize failed.
+     */
     private <T> boolean saveData(List<T> list, String fileName) throws IOException, ClassNotFoundException {
         FileOutputStream fos = new FileOutputStream(fileName);
         ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -91,8 +123,7 @@ public class FileSystemDal implements BaseDal {
 
     @Override
     public List<Book> GetBooks() {
-        List<Book> books = new ArrayList<Book>();
-
+        List<Book> books = new ArrayList<>();
         try {
             books = this.getData(this.BOOK_DAT);
             books.forEach((b) -> bookHash.put(b.getId(), b));
@@ -107,31 +138,23 @@ public class FileSystemDal implements BaseDal {
     public boolean SaveBook(Book b) {
         try {
             return this.saveData(this.GetBooks(), b, this.BOOK_DAT);
-        } catch (IOException ex) {
-            Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+        } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
-    private HashMap<UUID, BookReader> hashBookReader = new HashMap<UUID, BookReader>();
+    private HashMap<UUID, BookReader> hashBookReader;
 
     @Override
     public List<BookReader> GetBookReader() {
-        List<BookReader> items = new ArrayList<BookReader>();
-        List<Rent> rents = this.GetRents();
+        hashBookReader = new HashMap<>();
+        List<BookReader> items = new ArrayList<>();
+
         try {
-
             items = this.getData(this.BOOK_READER_DAT);
-
+            items = checkDelays(this.getData(this.BOOK_READER_DAT));
             items.forEach((reader) -> {
-                int delay = rents.stream()
-                        .filter(r -> r.getEnd() != null && r.getReaderId().equals(reader.getId()))
-                        .mapToInt((r) -> {
-                            Double gap = ((r.getDoto().getTime() - r.getEnd().getTime()) / 8.64e+7);
-                            return gap.intValue() > 0 ? gap.intValue() : 0;
-                        }).sum();
-                reader.setCanRent(delay < this.GetDelayDays());
+
                 hashBookReader.put(reader.getId(), reader);
             });
         } catch (IOException ex) {
@@ -152,12 +175,15 @@ public class FileSystemDal implements BaseDal {
         }
         return false;
     }
+    private HashMap<UUID, Rent> rentHash;
 
     @Override
     public List<Rent> GetRents() {
-        List<Rent> items = new ArrayList<Rent>();
+        rentHash = new HashMap<>();
+        List<Rent> items = new ArrayList<>();
         try {
             items = this.getData(this.RENT_DAT);
+            items.forEach((r) -> rentHash.put(r.getId(), r));
         } catch (IOException ex) {
         } catch (ClassNotFoundException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
@@ -242,18 +268,70 @@ public class FileSystemDal implements BaseDal {
     }
 
     @Override
+    public Rent GetRentById(UUID rentId) {
+        this.GetRents();
+        return rentHash.get(rentId);
+    }
+
+    @Override
     public void UpDateBook(Book book) {
         List<Book> books = this.GetBooks();
-        Book rr = books.stream().filter((r) -> r.getId().equals(r.getId())).findFirst().get();
-        books.remove(rr);
-        books.add(book);
         try {
+            Book rr = books.stream().filter((r) -> r.getId().equals(r.getId())).findFirst().get();
+            books.remove(rr);
+            books.add(book);
             this.saveData(books, BOOK_DAT);
-        } catch (IOException ex) {
+        } catch (NoSuchElementException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (ClassNotFoundException ex) {
+            throw ex;
+        } catch (IOException | ClassNotFoundException ex) {
             Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
+    @Override
+    public void UpDateBookReader(BookReader reader) {
+        List<BookReader> rrs = this.GetBookReader();
+        try {
+            BookReader rr = rrs.stream().filter((r) -> r.getId().equals(r.getId())).findFirst().get();
+            rrs.remove(rr);
+            rrs.add(reader);
+            this.saveData(rrs, BOOK_READER_DAT);
+        } catch (NoSuchElementException ex) {
+            Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
+            throw ex;
+        } catch (IOException | ClassNotFoundException ex) {
+            Logger.getLogger(FileSystemDal.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    /**
+     * Check the reader delay days
+     *
+     * check the difference between the end date and todo date, and if end date
+     * not exist check the now time.
+     *
+     * @param data list of bookreaders;
+     * @return update the delay date and the can rent property.
+     */
+    private List<BookReader> checkDelays(List<BookReader> data) {
+        // this is to init the rent hash table.
+        this.GetRents();
+        long now = new Date().getTime();
+        return data.stream().map((br) -> {
+            int delay = br.getRentIds().stream()
+                    .mapToInt((str) -> {
+                        Rent r = this.GetRentById(UUID.fromString(str));
+                        if (r.getEnd() != null) {
+                            Double d = (r.getDoto().getTime() - (r.getEnd() != null ? r.getEnd().getTime() : now)) / 1.15741e-8;
+                            return d.intValue() > 0 ? d.intValue() : 0;
+                        }
+                        return 0;
+                    }).sum();
+            if (delay > this.GetDelayDays()) {
+                br.setCanRent(false);
+            }
+            return br;
+        }).collect(Collectors.toList());
+    }
 }
